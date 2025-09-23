@@ -29,7 +29,6 @@ func LoadConfig() (*Config, error) {
 	configFile := filepath.Join(configDir, "config.toml")
 	if _, err := os.Stat(configFile); os.IsNotExist(err) {
 		// --- File doesn't exist: Create and write the default config ---
-		fmt.Printf("Config file not found. Creating a default one at: %s\n", configFile)
 		defaultConfig := NewDefaultConfig()
 
 		data, err := toml.Marshal(defaultConfig)
