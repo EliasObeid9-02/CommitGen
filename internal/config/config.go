@@ -1,6 +1,8 @@
 package config
 
-import "os"
+import (
+	"os"
+)
 
 // Config holds the application-wide settings, loaded from a TOML file.
 type Config struct {
@@ -99,13 +101,11 @@ func NewDefaultPromptConfig() Prompt {
 // findEditor determines the default text editor by checking environment variables
 // in the order of $VISUAL, then $EDITOR. It defaults to "nano" if neither is set.
 func findEditor() string {
-	visual, found := os.LookupEnv("VISUAL")
-	if found {
+	if visual := os.Getenv("VISUAL"); visual != "" {
 		return visual
 	}
 
-	editor, found := os.LookupEnv("EDITOR")
-	if found {
+	if editor := os.Getenv("EDITOR"); editor != "" {
 		return editor
 	}
 	return "nano"
