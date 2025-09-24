@@ -21,10 +21,10 @@ type Config struct {
 
 // AI holds global and provider-specific settings for the AI service.
 type AI struct {
-	DefaultProvider string      `toml:"default_provider" comment:"The default AI service to use (e.g., 'gemini'). Must match a provider key below."`
-	MaxTokens       int         `toml:"max_tokens" comment:"Global default for the maximum number of tokens for the generated response."`
-	Temperature     float64     `toml:"temperature" comment:"Global default between 0.0 and 1.0 that controls the randomness of the AI's output. Lower is more predictable."`
-	Providers       ProviderMap `toml:"providers" comment:"Configurations for each AI provider."`
+	DefaultProvider ProviderType `toml:"default_provider" comment:"The default AI service to use (e.g., 'gemini'). Must match a provider key below."`
+	MaxTokens       int          `toml:"max_tokens" comment:"Global default for the maximum number of tokens for the generated response."`
+	Temperature     float64      `toml:"temperature" comment:"Global default between 0.0 and 1.0 that controls the randomness of the AI's output. Lower is more predictable."`
+	Providers       ProviderMap  `toml:"providers" comment:"Configurations for each AI provider."`
 }
 
 // ProviderMap maps ProviderType to their corresponding configs
@@ -35,7 +35,7 @@ type ProviderType string
 
 const (
 	Gemini ProviderType = "gemini"
-	OpenAI              = "openai"
+	OpenAI ProviderType = "openai"
 )
 
 // ProviderConfig holds the specific settings for a single AI provider.
@@ -67,7 +67,7 @@ func NewDefaultConfig() *Config {
 // NewDefaultAIConfig creates the default AI configuration.
 func NewDefaultAIConfig() AI {
 	return AI{
-		DefaultProvider: "gemini",
+		DefaultProvider: Gemini,
 		MaxTokens:       256,
 		Temperature:     0.3,
 		Providers: map[ProviderType]ProviderConfig{
