@@ -22,8 +22,8 @@ type Config struct {
 // AI holds global and provider-specific settings for the AI service.
 type AI struct {
 	DefaultProvider ProviderType `toml:"default_provider" comment:"The default AI service to use (e.g., 'gemini'). Must match a provider key below."`
-	MaxTokens       int          `toml:"max_tokens" comment:"Global default for the maximum number of tokens for the generated response."`
-	Temperature     float64      `toml:"temperature" comment:"Global default between 0.0 and 1.0 that controls the randomness of the AI's output. Lower is more predictable."`
+	MaxTokens       int32        `toml:"max_tokens" comment:"Global default for the maximum number of tokens for the generated response."`
+	Temperature     float32      `toml:"temperature" comment:"Global default between 0.0 and 1.0 that controls the randomness of the AI's output. Lower is more predictable."`
 	Providers       ProviderMap  `toml:"providers" comment:"Configurations for each AI provider."`
 }
 
@@ -42,8 +42,8 @@ const (
 type ProviderConfig struct {
 	APIKey      string  `toml:"api_key" comment:"Your secret API key for this provider."`
 	Model       string  `toml:"model" comment:"The specific model to use (e.g., 'gemini-2.5-flash')."`
-	MaxTokens   int     `toml:"max_tokens" comment:"Optional: Overrides the global max_tokens setting for this provider."`
-	Temperature float64 `toml:"temperature" comment:"Optional: Overrides the global temperature setting for this provider."`
+	MaxTokens   int32   `toml:"max_tokens" comment:"Optional: Overrides the global max_tokens setting for this provider."`
+	Temperature float32 `toml:"temperature" comment:"Optional: Overrides the global temperature setting for this provider."`
 }
 
 // Prompt holds the prompt-related settings.
@@ -82,7 +82,22 @@ func NewDefaultAIConfig() AI {
 // NewDefaultPromptConfig creates the default prompt configuration.
 func NewDefaultPromptConfig() Prompt {
 	return Prompt{
-		Template: "", // TODO: create a good prompt template
+		Template: `
+You are an Senior Software Engineer with years of experience in writing concise and conventional commit messages.
+Based on the following staged diff, please generate a commit message.
+
+**Staged Diff:**
+` + "```" + `diff
+{{.StagedDiff}}
+` + "```" + `
+
+**Commit Types:**
+{{range $type, $description := .CommitTypes}}
+- {{$type}}: {{$description}}
+{{end}}
+
+Please follow the conventional commit format. The final output should be only the commit message.
+`,
 		CommitTypes: map[string]string{
 			"feat":     "A new feature",
 			"fix":      "A bug fix",
