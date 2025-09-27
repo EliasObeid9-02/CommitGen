@@ -37,8 +37,5 @@ func Commit(message, authorName, authorEmail string) error {
 	if err != nil {
 		return fmt.Errorf("failed to commit: %w, output: %s", err, string(output))
 	}
-
-	// TODO: remove
-	fmt.Println(string(output))
 	return nil
 }
