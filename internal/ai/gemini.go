@@ -69,8 +69,8 @@ func (p GeminiProvider) Generate(ctx context.Context, stagedDiff string) (string
 		p.providerCfg.Model,
 		genai.Text(prompt),
 		&genai.GenerateContentConfig{
-			Temperature:     &p.providerCfg.Temperature,
-			MaxOutputTokens: p.providerCfg.MaxTokens,
+			Temperature:     p.providerCfg.Temperature,
+			MaxOutputTokens: *p.providerCfg.MaxTokens,
 		})
 
 	if err != nil {

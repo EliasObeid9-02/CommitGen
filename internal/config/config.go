@@ -40,10 +40,10 @@ const (
 
 // ProviderConfig holds the specific settings for a single AI provider.
 type ProviderConfig struct {
-	APIKey      string  `toml:"api_key" comment:"Your secret API key for this provider."`
-	Model       string  `toml:"model" comment:"The specific model to use (e.g., 'gemini-2.5-flash')."`
-	MaxTokens   int32   `toml:"max_tokens" comment:"Optional: Overrides the global max_tokens setting for this provider."`
-	Temperature float32 `toml:"temperature" comment:"Optional: Overrides the global temperature setting for this provider."`
+	APIKey      string   `toml:"api_key" comment:"Your secret API key for this provider."`
+	Model       string   `toml:"model" comment:"The specific model to use (e.g., 'gemini-2.5-flash')."`
+	MaxTokens   *int32   `toml:"max_tokens" comment:"Optional: Overrides the global max_tokens setting for this provider."`
+	Temperature *float32 `toml:"temperature" comment:"Optional: Overrides the global temperature setting for this provider."`
 }
 
 // Prompt holds the prompt-related settings.
