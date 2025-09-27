@@ -22,13 +22,7 @@ const hookScript = `#!/bin/sh
 #
 # This Git hook is managed by the 'commitgen' tool.
 # To remove it, run: commitgen uninstall-hook
-
-# Skip the hook if a commit message is provided with -m or -F
-# Check if the commit message file is non-empty.
-if [ -s "$1" ]; then
-    # The file has content, so a message was provided.
-    exit 0
-fi
+# Debugging: Log hook execution and commitgen output
 
 # The commitgen binary should be in the user's PATH.
 # If you are having issues, please add its location to your PATH.
@@ -41,7 +35,9 @@ fi
 
 # Execute the commitgen binary to generate a message and
 # write it to the commit message file.
-%s generate-message --output-file "$1"
+commit_msg_file="$1"
+original_content=$(cat "$commit_msg_file")
+printf "%%s\n%%s" "$(%s)" "$original_content" > "$commit_msg_file"
 `
 
 /*
@@ -56,12 +52,10 @@ func Install() error {
 
 	hookPath := filepath.Join(repoRoot, hookDirName, hookFileName)
 	scriptContent := fmt.Sprintf(hookScript, binName, binName)
-
 	if err := os.WriteFile(hookPath, []byte(scriptContent), 0755); err != nil {
 		return fmt.Errorf("could not write hook file at %s: %w", hookPath, err)
 	}
 
-	fmt.Printf("Successfully installed Git hook at %s\n", hookPath)
 	return nil
 }
 
@@ -76,18 +70,14 @@ func Uninstall() error {
 	}
 
 	hookPath := filepath.Join(repoRoot, hookDirName, hookFileName)
-
-	// Check if the file exists before attempting to remove it
 	if _, err := os.Stat(hookPath); os.IsNotExist(err) {
-		fmt.Printf("Git hook not found at %s. Nothing to uninstall.\n", hookPath)
+		// Check if the file exists before attempting to remove it
 		return nil
 	}
 
 	if err := os.Remove(hookPath); err != nil {
 		return fmt.Errorf("could not remove hook file at %s: %w", hookPath, err)
 	}
-
-	fmt.Printf("Successfully uninstalled Git hook from %s\n", hookPath)
 	return nil
 }
 
