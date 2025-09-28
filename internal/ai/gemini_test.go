@@ -19,7 +19,7 @@ func TestGeminiProvider_buildPrompt(t *testing.T) {
 
 	// Create a new GeminiProvider with the mock configuration
 	provider := &GeminiProvider{
-		promptCfg: cfg.Prompt,
+		cfg: cfg,
 	}
 
 	// Define the test input

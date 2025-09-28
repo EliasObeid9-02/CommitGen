@@ -4,25 +4,26 @@ import (
 	"CommitGen/internal/config"
 	"bytes"
 	"context"
+	"fmt"
 	"text/template"
 
 	"google.golang.org/genai"
 )
 
 type GeminiProvider struct {
-	providerCfg config.ProviderConfig
-	promptCfg   config.Prompt
-	client      *genai.Client
+	cfg    config.Config
+	client *genai.Client
 }
 
 type PromptData struct {
-	StagedDiff  string
-	CommitTypes map[string]string
+	StagedDiff        string
+	CommitTypes       map[string]string
+	DefaultCommitType string
+	ForcedCommitType  string
 }
 
 func NewGeminiProvider(cfg config.Config) (*GeminiProvider, error) {
 	providerCfg := cfg.AI.Providers[config.Gemini]
-	promptCfg := cfg.Prompt
 
 	client, err := genai.NewClient(context.TODO(), &genai.ClientConfig{
 		APIKey:  providerCfg.APIKey,
@@ -33,20 +34,21 @@ func NewGeminiProvider(cfg config.Config) (*GeminiProvider, error) {
 	}
 
 	provider := &GeminiProvider{
-		providerCfg: providerCfg,
-		promptCfg:   promptCfg,
-		client:      client,
+		cfg:    cfg,
+		client: client,
 	}
 	return provider, nil
 }
 
 func (p GeminiProvider) buildPrompt(stagedDiff string) (string, error) {
 	data := PromptData{
-		StagedDiff:  stagedDiff,
-		CommitTypes: p.promptCfg.CommitTypes,
+		StagedDiff:        stagedDiff,
+		CommitTypes:       p.cfg.Prompt.CommitTypes,
+		DefaultCommitType: p.cfg.DefaultType,
+		ForcedCommitType:  p.cfg.ForcedCommitType,
 	}
 
-	tmpl, err := template.New("prompt").Parse(p.promptCfg.Template)
+	tmpl, err := template.New("prompt").Parse(p.cfg.Prompt.Template)
 	if err != nil {
 		return "", err
 	}
@@ -64,17 +66,39 @@ func (p GeminiProvider) Generate(ctx context.Context, stagedDiff string) (string
 		return "", err
 	}
 
+	providerCfg := p.cfg.AI.Providers[config.Gemini]
 	result, err := p.client.Models.GenerateContent(
 		ctx,
-		p.providerCfg.Model,
+		providerCfg.Model,
 		genai.Text(prompt),
 		&genai.GenerateContentConfig{
-			Temperature:     p.providerCfg.Temperature,
-			MaxOutputTokens: *p.providerCfg.MaxTokens,
+			Temperature:     providerCfg.Temperature,
+			MaxOutputTokens: *providerCfg.MaxTokens,
 		})
 
 	if err != nil {
 		return "", err
 	}
-	return result.Text(), nil
+
+	if result == nil || len(result.Candidates) == 0 {
+		return "", fmt.Errorf("received an empty response from the AI provider")
+	}
+
+	// Check the finish reason. If it's not 'STOP', the model was likely blocked.
+	candidate := result.Candidates[0]
+	if candidate.FinishReason != genai.FinishReasonStop {
+		return "", fmt.Errorf("AI generation stopped for reason: %s", candidate.FinishReason)
+	}
+
+	var responseBuilder bytes.Buffer
+	if candidate.Content != nil {
+		for _, part := range candidate.Content.Parts {
+			responseBuilder.WriteString(part.Text)
+		}
+	}
+
+	if responseBuilder.Len() == 0 {
+		return "", fmt.Errorf("AI returned a candidate with zero parts")
+	}
+	return responseBuilder.String(), nil
 }
