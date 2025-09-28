@@ -8,6 +8,19 @@ import (
 	"github.com/pelletier/go-toml/v2"
 )
 
+func (cfg *Config) setupLocalProviderOverrides() {
+	for providerType, providerCfg := range cfg.AI.Providers {
+		if providerCfg.MaxTokens == nil {
+			providerCfg.MaxTokens = &cfg.AI.MaxTokens
+		}
+
+		if providerCfg.Temperature == nil {
+			providerCfg.Temperature = &cfg.AI.Temperature
+		}
+		cfg.AI.Providers[providerType] = providerCfg
+	}
+}
+
 // getConfigFile determines the base config file location using XDG standards.
 func getConfigDir() (string, error) {
 	configHome, err := os.UserConfigDir()
@@ -54,7 +67,9 @@ func LoadConfig() (*Config, error) {
 		if err := GenerateConfig(); err != nil {
 			return nil, err
 		}
-		return NewDefaultConfig(), nil
+		cfg := NewDefaultConfig()
+		cfg.setupLocalProviderOverrides()
+		return cfg, nil
 	}
 
 	// --- File exists: Load it and merge with defaults ---
@@ -71,16 +86,6 @@ func LoadConfig() (*Config, error) {
 	if err := toml.Unmarshal(data, cfg); err != nil {
 		return nil, fmt.Errorf("could not parse config file: %w", err)
 	}
-
-	for providerType, providerCfg := range cfg.AI.Providers {
-		if providerCfg.MaxTokens == nil {
-			providerCfg.MaxTokens = &cfg.AI.MaxTokens
-		}
-
-		if providerCfg.Temperature == nil {
-			providerCfg.Temperature = &cfg.AI.Temperature
-		}
-		cfg.AI.Providers[providerType] = providerCfg
-	}
+	cfg.setupLocalProviderOverrides()
 	return cfg, nil
 }

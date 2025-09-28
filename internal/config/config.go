@@ -17,6 +17,9 @@ type Config struct {
 
 	// Prompt is a table for prompt-related configuration.
 	Prompt Prompt `toml:"prompt"`
+
+	// ForcedCommitType is used to override the commit type from the command line.
+	ForcedCommitType string `toml:"-"`
 }
 
 // AI holds global and provider-specific settings for the AI service.
@@ -82,21 +85,38 @@ func NewDefaultAIConfig() AI {
 // NewDefaultPromptConfig creates the default prompt configuration.
 func NewDefaultPromptConfig() Prompt {
 	return Prompt{
-		Template: `
-You are an Senior Software Engineer with years of experience in writing concise and conventional commit messages.
-Based on the following staged diff, please generate a commit message.
+		Template: `You are an expert at writing conventional commit messages.
+Your task is to generate a commit message based on the provided staged diff.
+
+**Commit Message Format:**
+` + "```" + `
+{commit_type}{commit_scope (optional)}: {commit_summary}
+
+{commit_body}
+` + "```" + `
+- The body should be a collection of bullet points explaining the details of the commit.
+- The scope is optional and should be surrounded by parentheses.
 
 **Staged Diff:**
 ` + "```" + `diff
 {{.StagedDiff}}
 ` + "```" + `
 
+{{if .ForcedCommitType}}
+**Instructions:**
+- You MUST use the commit type: {{.ForcedCommitType}}
+{{else}}
+**Instructions:**
+- Choose the best commit type from the following list.
+- If you are unsure, use the default type: {{.DefaultCommitType}}
+
 **Commit Types:**
 {{range $type, $description := .CommitTypes}}
 - {{$type}}: {{$description}}
 {{end}}
+{{end}}
 
-Please follow the conventional commit format. The final output should be only the commit message.
+The final output should be only the raw commit message, without any markdown formatting.
 `,
 		CommitTypes: map[string]string{
 			"feat":     "A new feature",
