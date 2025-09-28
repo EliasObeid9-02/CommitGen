@@ -98,6 +98,7 @@ func main() {
 	if err != nil {
 		logger.Fatalf("Error loading configuration: %v", err)
 	}
+	cfg.OverrideFromFlags()
 
 	// Initialize the AI provider
 	geminiProvider, err := ai.NewGeminiProvider(*cfg)
