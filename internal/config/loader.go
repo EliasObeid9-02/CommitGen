@@ -9,10 +9,10 @@ import (
 )
 
 /*
-setupLocalProviderOverrides iterates through AI providers and sets default global values
+SetupLocalProviderOverrides iterates through AI providers and sets default global values
 for MaxTokens and Temperature if they are not explicitly defined in the provider's configuration.
 */
-func (cfg *Config) setupLocalProviderOverrides() {
+func (cfg *Config) SetupLocalProviderOverrides() {
 	for providerType, providerCfg := range cfg.AI.Providers {
 		if providerCfg.MaxTokens == nil {
 			providerCfg.MaxTokens = &cfg.AI.MaxTokens
@@ -82,7 +82,7 @@ func LoadConfig() (*Config, error) {
 			return nil, err
 		}
 		cfg := NewDefaultConfig()
-		cfg.setupLocalProviderOverrides()
+		cfg.SetupLocalProviderOverrides()
 		return cfg, nil
 	}
 
@@ -100,6 +100,6 @@ func LoadConfig() (*Config, error) {
 	if err := toml.Unmarshal(data, cfg); err != nil {
 		return nil, fmt.Errorf("could not parse config file: %w", err)
 	}
-	cfg.setupLocalProviderOverrides()
+	cfg.SetupLocalProviderOverrides()
 	return cfg, nil
 }

@@ -71,7 +71,7 @@ func NewDefaultConfig() *Config {
 func NewDefaultAIConfig() AI {
 	return AI{
 		DefaultProvider: Gemini,
-		MaxTokens:       256,
+		MaxTokens:       4096,
 		Temperature:     0.3,
 		Providers: map[ProviderType]ProviderConfig{
 			Gemini: {
