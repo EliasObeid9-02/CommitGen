@@ -7,6 +7,7 @@ import (
 	"log"
 )
 
+// InstallHookFunc installs the git hook by calling git.Install function.
 func InstallHookFunc() {
 	err := git.Install()
 	if err != nil {
@@ -15,6 +16,7 @@ func InstallHookFunc() {
 	fmt.Println("Git hook installed successfully.")
 }
 
+// UninstallHookFunc uninstalls the git hook by calling git.uninstall function.
 func UninstallHookFunc() {
 	err := git.Uninstall()
 	if err != nil {
@@ -23,6 +25,7 @@ func UninstallHookFunc() {
 	fmt.Println("Git hook uninstalled successfully.")
 }
 
+// GenerateConfigFunc writes the default config file by calling config.GenerateConfig function.
 func GenerateConfigFunc() {
 	err := config.GenerateConfig()
 	if err != nil {

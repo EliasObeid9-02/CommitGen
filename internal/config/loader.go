@@ -8,6 +8,10 @@ import (
 	"github.com/pelletier/go-toml/v2"
 )
 
+/*
+setupLocalProviderOverrides iterates through AI providers and sets default global values
+for MaxTokens and Temperature if they are not explicitly defined in the provider's configuration.
+*/
 func (cfg *Config) setupLocalProviderOverrides() {
 	for providerType, providerCfg := range cfg.AI.Providers {
 		if providerCfg.MaxTokens == nil {
@@ -21,7 +25,11 @@ func (cfg *Config) setupLocalProviderOverrides() {
 	}
 }
 
-// getConfigFile determines the base config file location using XDG standards.
+/*
+getConfigDir determines the absolute path for the application's configuration directory
+and file based on XDG Base Directory Specification.
+It also creates the directory if it doesn't exist.
+*/
 func getConfigDir() (string, error) {
 	configHome, err := os.UserConfigDir()
 	if err != nil {
@@ -38,6 +46,7 @@ func getConfigDir() (string, error) {
 	return configFile, nil
 }
 
+// GenerateConfig creates the default config object and writes to the default config location.
 func GenerateConfig() error {
 	configFile, err := getConfigDir()
 	if err != nil {
@@ -56,7 +65,12 @@ func GenerateConfig() error {
 	return nil
 }
 
-// LoadConfig finds, loads, and parses the configuration file.
+/*
+LoadConfig attempts to find and load the application's configuration file.
+If the file does not exist, it generates a default configuration.
+It then parses the configuration, merging it with default settings,
+and applies local provider overrides.
+*/
 func LoadConfig() (*Config, error) {
 	configFile, err := getConfigDir()
 	if err != nil {

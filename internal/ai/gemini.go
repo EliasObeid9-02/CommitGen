@@ -10,18 +10,13 @@ import (
 	"google.golang.org/genai"
 )
 
+// GeminiProvider implements the LLMProvider interface for interacting with the Google Gemini API.
 type GeminiProvider struct {
 	cfg    config.Config
 	client *genai.Client
 }
 
-type PromptData struct {
-	StagedDiff        string
-	CommitTypes       map[string]string
-	DefaultCommitType string
-	ForcedCommitType  string
-}
-
+// NewGeminiProvider creates and initializes a new GeminiProvider instance with the given configuration.
 func NewGeminiProvider(cfg config.Config) (*GeminiProvider, error) {
 	providerCfg := cfg.AI.Providers[config.Gemini]
 
@@ -40,6 +35,10 @@ func NewGeminiProvider(cfg config.Config) (*GeminiProvider, error) {
 	return provider, nil
 }
 
+/*
+buildPrompt constructs the prompt string for the Gemini LLM by executing the configured
+prompt template with the relevant data.
+*/
 func (p GeminiProvider) buildPrompt(stagedDiff string) (string, error) {
 	data := PromptData{
 		StagedDiff:        stagedDiff,
@@ -60,6 +59,10 @@ func (p GeminiProvider) buildPrompt(stagedDiff string) (string, error) {
 	return buf.String(), nil
 }
 
+/*
+Generate sends the constructed prompt to the Gemini LLM and returns the generated commit message.
+It handles potential errors and empty responses from the AI provider.
+*/
 func (p GeminiProvider) Generate(ctx context.Context, stagedDiff string) (string, error) {
 	prompt, err := p.buildPrompt(stagedDiff)
 	if err != nil {
