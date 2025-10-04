@@ -5,6 +5,7 @@ import (
 	"CommitGen/internal/config"
 	"CommitGen/internal/git"
 	"context"
+	"flag"
 	"path/filepath"
 	"runtime"
 	"time"
@@ -77,8 +78,24 @@ func main() {
 
 	logger := log.New(logFile, "", log.Ldate|log.Ltime|log.Lshortfile)
 
-	if len(os.Args) > 1 {
-		switch os.Args[1] {
+	commitMsgFile := flag.String("commit-msg-file", "", "Path to the commit message file (used by git hook)")
+	provider := flag.String("provider", "", "AI provider to use (e.g., gemini, openai)")
+	apiKey := flag.String("api-key", "", "API key for the AI provider")
+	temperature := flag.Float64("temperature", -1.0, "Temperature for the AI model")
+	model := flag.String("model", "", "AI model to use")
+	maxTokens := flag.Int("max-tokens", -1, "Maximum number of tokens for the AI model")
+	commitType := flag.String("commit-type", "", "Type of commit (e.g., feat, fix, test)")
+	flag.Parse()
+
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		logger.Fatalf("Error loading configuration: %v", err)
+	}
+	cfg.OverrideFromFlags(commitType, provider, apiKey, model, temperature, maxTokens)
+
+	// After parsing flags, check for subcommands
+	if len(flag.Args()) > 0 {
+		switch flag.Args()[0] {
 		case "install-hook":
 			InstallHookFunc()
 			return
@@ -94,12 +111,6 @@ func main() {
 		}
 	}
 
-	cfg, err := config.LoadConfig()
-	if err != nil {
-		logger.Fatalf("Error loading configuration: %v", err)
-	}
-	cfg.OverrideFromFlags()
-
 	// Initialize the AI provider
 	geminiProvider, err := ai.NewGeminiProvider(*cfg)
 	if err != nil {
@@ -111,12 +122,38 @@ func main() {
 		logger.Fatalf("Error getting stagedDiff: %v", err)
 	}
 
+	var existingCommitMessage string
+	var existingCommitMessageComments string
+	if commitMsgFile != nil && *commitMsgFile != "" {
+		content, err := os.ReadFile(*commitMsgFile)
+		if err != nil {
+			logger.Printf("Warning: Could not read existing commit message file %s: %v", *commitMsgFile, err)
+		} else {
+			nonCommented, commented := git.ParseCommitMessage(string(content))
+			existingCommitMessage = nonCommented
+			existingCommitMessageComments = commented
+		}
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	commitMessage, err := geminiProvider.Generate(ctx, stagedDiff)
+	commitMessage, err := geminiProvider.Generate(ctx, stagedDiff, existingCommitMessage)
 	if err != nil {
 		logger.Fatalf("Error generating commit message: %v", err)
 	}
-	fmt.Println(commitMessage)
+
+	finalCommitMessage := commitMessage
+	if existingCommitMessageComments != "" {
+		finalCommitMessage = fmt.Sprintf("%s\n%s", commitMessage, existingCommitMessageComments)
+	}
+
+	if commitMsgFile != nil && *commitMsgFile != "" {
+		err := os.WriteFile(*commitMsgFile, []byte(finalCommitMessage), 0644)
+		if err != nil {
+			logger.Fatalf("Error writing commit message to file %s: %v", *commitMsgFile, err)
+		}
+	} else {
+		fmt.Println(finalCommitMessage)
+	}
 }
