@@ -37,7 +37,7 @@ fi
 # write it to the commit message file.
 commit_msg_file="$1"
 original_content=$(cat "$commit_msg_file")
-printf "%%s\n%%s" "$(%s)" "$original_content" > "$commit_msg_file"
+%s --commit-msg-file "$commit_msg_file"
 `
 
 /*

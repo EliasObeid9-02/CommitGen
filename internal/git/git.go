@@ -3,6 +3,7 @@ package git
 import (
 	"fmt"
 	"os/exec"
+	"strings"
 )
 
 // GetStagedDiff returns the diff of the currently staged files.
@@ -16,6 +17,29 @@ func GetStagedDiff() (string, error) {
 		return "", fmt.Errorf("could not get staged diff: %w, output: %s", err, string(output))
 	}
 	return string(output), nil
+}
+
+/*
+ParseCommitMessage separates the non-commented lines from the commented lines
+in a raw commit message content. Git comments typically start with '#'.
+*/
+func ParseCommitMessage(rawContent string) (nonCommented string, commented string) {
+	lines := strings.Split(rawContent, "\n")
+	var nonCommentedLines []string
+	var commentedLines []string
+
+	for _, line := range lines {
+		if strings.HasPrefix(line, "#") {
+			commentedLines = append(commentedLines, line)
+		} else {
+			nonCommentedLines = append(nonCommentedLines, line)
+		}
+	}
+
+	nonCommented = strings.Join(nonCommentedLines, "\n")
+	commented = strings.Join(commentedLines, "\n")
+
+	return nonCommented, commented
 }
 
 // Commit creates a new commit with the given message, author, and committer info.
