@@ -8,6 +8,8 @@ import (
 	"testing"
 )
 
+const stagedDiff = "diff --git a/file.go b/file.go\nindex abcdef1..2345678 100644\n--- a/file.go\n+++ b/file.go\n@@ -1,1 +1,2 @@\n+func main() {\n+  fmt.Println(\"Hello\")\n}\n"
+
 // setupTestConfig creates a default config for testing purposes.
 func setupTestConfig() config.Config {
 	cfg := config.NewDefaultConfig()
@@ -21,9 +23,8 @@ func setupTestConfig() config.Config {
 func TestBuildPrompt_Basic(t *testing.T) {
 	cfg := setupTestConfig()
 	provider := GeminiProvider{cfg: cfg}
-	stagedDiff := "diff --git a/file.go b/file.go\nindex abcdef1..2345678 100644\n--- a/file.go\n+++ b/file.go\n@@ -1,1 +1,2 @@\n+func main() {\n+  fmt.Println(\"Hello\")\n}\n"
 
-	prompt, err := provider.buildPrompt(stagedDiff)
+	prompt, err := provider.buildPrompt(stagedDiff, "")
 	if err != nil {
 		t.Fatalf("buildPrompt failed: %v", err)
 	}
@@ -45,9 +46,8 @@ func TestBuildPrompt_ForcedCommitType(t *testing.T) {
 	cfg := setupTestConfig()
 	cfg.ForcedCommitType = "feat"
 	provider := GeminiProvider{cfg: cfg}
-	stagedDiff := "some diff"
 
-	prompt, err := provider.buildPrompt(stagedDiff)
+	prompt, err := provider.buildPrompt(stagedDiff, "")
 	if err != nil {
 		t.Fatalf("buildPrompt failed: %v", err)
 	}
@@ -68,9 +68,8 @@ func TestBuildPrompt_CustomCommitTypes(t *testing.T) {
 		"new":    "A new entry",
 	}
 	provider := GeminiProvider{cfg: cfg}
-	stagedDiff := "some diff"
 
-	prompt, err := provider.buildPrompt(stagedDiff)
+	prompt, err := provider.buildPrompt(stagedDiff, "")
 	if err != nil {
 		t.Fatalf("buildPrompt failed: %v", err)
 	}
@@ -88,7 +87,7 @@ func TestBuildPrompt_EmptyStagedDiff(t *testing.T) {
 	provider := GeminiProvider{cfg: cfg}
 	stagedDiff := ""
 
-	prompt, err := provider.buildPrompt(stagedDiff)
+	prompt, err := provider.buildPrompt(stagedDiff, "")
 	if err != nil {
 		t.Fatalf("buildPrompt failed: %v", err)
 	}
@@ -102,9 +101,8 @@ func TestBuildPrompt_InvalidTemplate(t *testing.T) {
 	cfg := setupTestConfig()
 	cfg.Prompt.Template = "{{.StagedDiff" // Malformed template: Missing closing '}}'
 	provider := GeminiProvider{cfg: cfg}
-	stagedDiff := "some diff"
 
-	_, err := provider.buildPrompt(stagedDiff)
+	_, err := provider.buildPrompt(stagedDiff, "")
 	if err == nil {
 		t.Errorf("expected an error for invalid template, got nil")
 	}
@@ -133,7 +131,7 @@ func TestGenerate_WithEnvVar(t *testing.T) {
 
 	stagedDiff := "diff --git a/main.go b/main.go\nindex 0000000..abcdef0 100644\n--- a/main.go\n+++ b/main.go\n@@ -1,3 +1,7 @@\n package main\n \n import (\n+\t\"fmt\"\n \t\"log\"\n )\n \n+func greet() {\n+\tfmt.Println(\"Hello, world!\")\n}\n+\n func main() {\n \tlog.Println(\"Starting application\")\n+\tgreet()\n }"
 
-	message, err := provider.Generate(context.Background(), stagedDiff)
+	message, err := provider.Generate(context.Background(), stagedDiff, "")
 	if err != nil {
 		t.Fatalf("Generate test failed: %v", err)
 	}
@@ -146,5 +144,20 @@ func TestGenerate_WithEnvVar(t *testing.T) {
 	if !strings.Contains(message, ":") || !strings.Contains(message, "\n\n") {
 		t.Logf("Generated message: %s", message)
 		t.Errorf("generated message does not seem to follow conventional commit format")
+	}
+}
+
+func TestBuildPrompt_ExistingCommitMessage(t *testing.T) {
+	cfg := setupTestConfig()
+	provider := GeminiProvider{cfg: cfg}
+	existingMsg := "feat: existing feature\n\nThis is an existing message."
+
+	prompt, err := provider.buildPrompt(stagedDiff, existingMsg)
+	if err != nil {
+		t.Fatalf("buildPrompt failed: %v", err)
+	}
+
+	if !strings.Contains(prompt, existingMsg) {
+		t.Errorf("prompt missing existing commit message")
 	}
 }
