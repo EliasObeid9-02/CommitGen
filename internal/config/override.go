@@ -1,19 +1,15 @@
 package config
 
-import (
-	"flag"
-)
-
 // OverrideFromFlags modifies the configuration based on command-line flags.
-func (c *Config) OverrideFromFlags() {
-	provider := flag.String("provider", "", "AI provider to use (e.g., gemini, openai)")
-	apiKey := flag.String("api-key", "", "API key for the AI provider")
-	temperature := flag.Float64("temperature", -1.0, "Temperature for the AI model")
-	model := flag.String("model", "", "AI model to use")
-	maxTokens := flag.Int("max-tokens", -1, "Maximum number of tokens for the AI model")
-	commitType := flag.String("commit-type", "", "Type of commit (e.g., feat, fix, test)")
-	flag.Parse()
+func (c *Config) OverrideFromFlags(
+	commitType,
+	provider,
+	apiKey,
+	model *string,
+	temperature *float64,
+	maxTokens *int,
 
+) {
 	if *commitType != "" {
 		c.ForcedCommitType = *commitType
 	}
