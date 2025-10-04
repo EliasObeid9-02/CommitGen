@@ -39,12 +39,13 @@ func NewGeminiProvider(cfg config.Config) (*GeminiProvider, error) {
 buildPrompt constructs the prompt string for the Gemini LLM by executing the configured
 prompt template with the relevant data.
 */
-func (p GeminiProvider) buildPrompt(stagedDiff string) (string, error) {
+func (p GeminiProvider) buildPrompt(stagedDiff, existingCommitMessage string) (string, error) {
 	data := PromptData{
-		StagedDiff:        stagedDiff,
-		CommitTypes:       p.cfg.Prompt.CommitTypes,
-		DefaultCommitType: p.cfg.DefaultType,
-		ForcedCommitType:  p.cfg.ForcedCommitType,
+		StagedDiff:            stagedDiff,
+		CommitTypes:           p.cfg.Prompt.CommitTypes,
+		DefaultCommitType:     p.cfg.DefaultType,
+		ForcedCommitType:      p.cfg.ForcedCommitType,
+		ExistingCommitMessage: existingCommitMessage,
 	}
 
 	tmpl, err := template.New("prompt").Parse(p.cfg.Prompt.Template)
@@ -63,8 +64,8 @@ func (p GeminiProvider) buildPrompt(stagedDiff string) (string, error) {
 Generate sends the constructed prompt to the Gemini LLM and returns the generated commit message.
 It handles potential errors and empty responses from the AI provider.
 */
-func (p GeminiProvider) Generate(ctx context.Context, stagedDiff string) (string, error) {
-	prompt, err := p.buildPrompt(stagedDiff)
+func (p GeminiProvider) Generate(ctx context.Context, stagedDiff, existingCommitMessage string) (string, error) {
+	prompt, err := p.buildPrompt(stagedDiff, existingCommitMessage)
 	if err != nil {
 		return "", err
 	}

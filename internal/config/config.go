@@ -97,6 +97,13 @@ Your task is to generate a commit message based on the provided staged diff.
 - The body should be a collection of bullet points explaining the details of the commit.
 - The scope is optional and should be surrounded by parentheses.
 
+{{if .ExistingCommitMessage}}
+**Existing Commit Message (for amendment):**
+` + "```" + `
+{{.ExistingCommitMessage}}
+` + "```" + `
+{{end}}
+
 **Staged Diff:**
 ` + "```" + `diff
 {{.StagedDiff}}
@@ -115,7 +122,6 @@ Your task is to generate a commit message based on the provided staged diff.
 - {{$type}}: {{$description}}
 {{end}}
 {{end}}
-
 The final output should be only the raw commit message, without any markdown formatting.
 `,
 		CommitTypes: map[string]string{
@@ -124,7 +130,7 @@ The final output should be only the raw commit message, without any markdown for
 			"docs":     "Documentation only changes",
 			"style":    "Changes that do not affect the meaning of the code",
 			"refactor": "A code change that neither adds a feature nor fixes a bug",
-			"perf":     "A code change that improves performance",
+			"perf":     "A code change that improves performance",	
 			"test":     "Adding missing tests or correcting existing tests",
 			"chore":    "Changes to the build process or auxiliary tools",
 			"build":    "Changes that affect the build system or external dependencies",
