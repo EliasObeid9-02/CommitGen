@@ -86,44 +86,57 @@ func NewDefaultAIConfig() AI {
 func NewDefaultPromptConfig() Prompt {
 	return Prompt{
 		Template: `You are an expert at writing conventional commit messages.
-Your task is to generate a commit message based on the provided staged diff.
 
-**Commit Message Format:**
-` + "```" + `
+**INSTRUCTIONS:**
+- Your primary task is to generate a Git commit message based on the provided staged diff.
+- If an existing commit message is provided, amend it based on the new diff and instructions.
+{{if .ForcedCommitType}}
+- You MUST use the commit type: {{.ForcedCommitType}}
+{{else}}
+- Choose the best commit type from the provided list.
+- If you are unsure which type to use, default to: {{.DefaultCommitType}}
+{{end}}
+
+**GUIDELINES:**
+- Focus on explaining the 'why' of the changes, not just the 'what'.
+- Aim for clarity, conciseness, and descriptiveness in the summary and body.
+- Consider the broader context of the changes (e.g., feature, bug fix, refactor).
+
+**RULES:**
+- The commit message must be written in English.
+- Do not include any conversational text, explanations, or meta-commentary outside of the commit message itself.
+- Do not include sensitive information or personal opinions.
+- Ensure the message accurately reflects the changes in the staged diff.
+
+**FORMAT:**
 {commit_type}{commit_scope (optional)}: {commit_summary}
 
 {commit_body}
-` + "```" + `
+
+- The subject line (first line) must be 50-72 characters or less.
+- The commit summary should start with a capital letter.
+- Separate the subject line from the body with a blank line.
+- Wrap body lines at 72 characters.
 - The body should be a collection of bullet points explaining the details of the commit.
+- Bullet points should uses dashes and not asterisks.
 - The scope is optional and should be surrounded by parentheses.
 
 {{if .ExistingCommitMessage}}
-**Existing Commit Message (for amendment):**
-` + "```" + `
-{{.ExistingCommitMessage}}
-` + "```" + `
+**EXISTING COMMIT MESSAGE:**{{.ExistingCommitMessage}}
 {{end}}
 
-**Staged Diff:**
-` + "```" + `diff
+**STAGED DIFF:**
 {{.StagedDiff}}
-` + "```" + `
 
-{{if .ForcedCommitType}}
-**Instructions:**
-- You MUST use the commit type: {{.ForcedCommitType}}
-{{else}}
-**Instructions:**
-- Choose the best commit type from the following list.
-- If you are unsure, use the default type: {{.DefaultCommitType}}
 
-**Commit Types:**
+{{if not .ForcedCommitType}}
+**COMMIT TYPES:**
 {{range $type, $description := .CommitTypes}}
 - {{$type}}: {{$description}}
 {{end}}
 {{end}}
-The final output should be only the raw commit message, without any markdown formatting.
-`,
+
+The final output should be only the raw commit message, without any markdown formatting.`,
 		CommitTypes: map[string]string{
 			"feat":     "A new feature",
 			"fix":      "A bug fix",
