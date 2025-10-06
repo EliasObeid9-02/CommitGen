@@ -51,7 +51,7 @@ type ProviderConfig struct {
 
 // Prompt holds the prompt-related settings.
 type Prompt struct {
-	Template    string            `toml:"template" comment:"The prompt template. Use {{.StagedDiff}} for staged changes and {{.CommitTypes}} for the types list."`
+	Template    string            `toml:"template,multiline" comment:"The prompt template. Use {{.StagedDiff}} for staged changes and {{.CommitTypes}} for the types list."`
 	CommitTypes map[string]string `toml:"commit_types" comment:"A map of commit types and their descriptions for the AI to choose from."`
 }
 
@@ -130,7 +130,7 @@ The final output should be only the raw commit message, without any markdown for
 			"docs":     "Documentation only changes",
 			"style":    "Changes that do not affect the meaning of the code",
 			"refactor": "A code change that neither adds a feature nor fixes a bug",
-			"perf":     "A code change that improves performance",	
+			"perf":     "A code change that improves performance",
 			"test":     "Adding missing tests or correcting existing tests",
 			"chore":    "Changes to the build process or auxiliary tools",
 			"build":    "Changes that affect the build system or external dependencies",
