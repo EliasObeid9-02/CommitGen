@@ -21,6 +21,42 @@ curl -sfL https://raw.githubusercontent.com/EliasObeid9-02/CommitGen/main/instal
 
 After installation, you may need to restart your terminal or your shell (e.g., `exec bash`, `exec zsh`, or `exec fish` depending on your shell) if `~/.local/bin` was used and not already in your `PATH`.
 
+### Build from Source
+
+If you prefer to build CommitGen from source, follow these steps:
+
+1. **Clone the repository:**
+
+```bash
+git clone https://github.com/EliasObeid9-02/CommitGen.git
+cd CommitGen
+```
+
+2. **Build the binary:**
+
+```bash
+go build -o commitgen ./cmd/commitgen
+```
+
+3. **Install the binary (optional):**
+
+Move the compiled `commitgen` binary to a directory in your system's `PATH` (e.g., `/usr/local/bin` or `~/.local/bin`).
+
+```bash
+sudo mv commitgen /usr/local/bin/
+# Or for local installation:
+# mkdir -p ~/.local/bin
+# mv commitgen ~/.local/bin/
+```
+
+Ensure the binary is executable:
+
+```bash
+sudo chmod +x /usr/local/bin/commitgen
+# Or for local installation:
+# chmod +x ~/.local/bin/commitgen
+```
+
 ## Usage
 
 ### Generate a Commit Message
