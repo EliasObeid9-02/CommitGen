@@ -12,7 +12,7 @@ nc='\033[0m' # No Color
 # --- Configuration ---
 REPO_OWNER="EliasObeid9-02"
 REPO_NAME="CommitGen"
-RELEASE_VERSION="v0.1.0"
+RELEASE_VERSION="v0.1.1"
 BINARY_NAME="commitgen"
 INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin}" # Default install directory, can be overridden by user
 LOCAL_INSTALL_DIR="${HOME}/.local/bin"
