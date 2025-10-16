@@ -21,7 +21,7 @@ type LLMProvider interface {
 }
 
 // GetProvider returns an initialized LLMProvider implementation based on the configured default AI provider.
-func GetProvider(cfg config.Config) (LLMProvider, error) {
+func GetProvider(cfg *config.Config) (LLMProvider, error) {
 	switch cfg.AI.DefaultProvider {
 	case config.Gemini:
 		return NewGeminiProvider(cfg)

@@ -11,13 +11,13 @@ import (
 const stagedDiff = "diff --git a/file.go b/file.go\nindex abcdef1..2345678 100644\n--- a/file.go\n+++ b/file.go\n@@ -1,1 +1,2 @@\n+func main() {\n+  fmt.Println(\"Hello\")\n}\n"
 
 // setupTestConfig creates a default config for testing purposes.
-func setupTestConfig() config.Config {
+func setupTestConfig() *config.Config {
 	cfg := config.NewDefaultConfig()
 	cfg.AI.Providers[config.Gemini] = config.ProviderConfig{
 		APIKey: "test-api-key",
 		Model:  "gemini-pro",
 	}
-	return *cfg
+	return cfg
 }
 
 func TestBuildPrompt_Basic(t *testing.T) {

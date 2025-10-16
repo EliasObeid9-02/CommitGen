@@ -12,12 +12,12 @@ import (
 
 // GeminiProvider implements the LLMProvider interface for interacting with the Google Gemini API.
 type GeminiProvider struct {
-	cfg    config.Config
+	cfg    *config.Config
 	client *genai.Client
 }
 
 // NewGeminiProvider creates and initializes a new GeminiProvider instance with the given configuration.
-func NewGeminiProvider(cfg config.Config) (*GeminiProvider, error) {
+func NewGeminiProvider(cfg *config.Config) (*GeminiProvider, error) {
 	providerCfg := cfg.AI.Providers[config.Gemini]
 
 	client, err := genai.NewClient(context.TODO(), &genai.ClientConfig{
